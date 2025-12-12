@@ -2,6 +2,8 @@ import { createBrowserRouter } from 'react-router-dom';
 import App from './App';
 import HomePage from './pages/HomePage';
 import AboutPage from './pages/AboutPage';
+import FavoritesPage from './pages/FavoritesPage';
+import TestMapPage from './pages/TestMapPage';
 
 // 创建浏览器路由器实例
 const router = createBrowserRouter([
@@ -15,17 +17,28 @@ const router = createBrowserRouter([
         element: <HomePage />,
       },
       {
+        path: '/favorites',
+        element: <FavoritesPage />,
+      },
+      {
         path: '/about',
         element: <AboutPage />,
       },
+      {
+        path: '/test-map',
+        element: <TestMapPage />,
+      },
+      {
+        // 404 页面
+        path: '*',
+        element: (
+          <div>
+            <h1>404 - 页面未找到</h1>
+            <p>抱歉，您访问的页面不存在。</p>
+          </div>
+        ),
+      },
     ],
-    // 错误边界
-    errorElement: (
-      <div>
-        <h1>404 - 页面未找到</h1>
-        <p>抱歉，您访问的页面不存在。</p>
-      </div>
-    ),
   },
 ]);
 
