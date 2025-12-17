@@ -1,11 +1,139 @@
 import React, { useEffect, useRef } from 'react';
 import AMapLoader from '@amap/amap-jsapi-loader';
 
-const MapComponent = ({ onMapReady }) => {
+// 使用 React.memo 防止不必要的重新渲染
+const MapComponent = React.memo(({ onMapReady }) => {
   const mapContainer = useRef(null);
   const map = useRef(null);
+  const isMounted = useRef(false);
+  const hasInitialized = useRef(false);
+
+  // 参考demo.tsx实现路线绘制功能
+  const drawRoute = (route, routeMode = 'driving') => {
+    if (!map.current) {
+      console.error('地图未初始化');
+      return;
+    }
+
+    try {
+      const path = parseRouteToPath(route);
+
+      // 创建起点标记
+      const startMarker = new map.current.__proto__.constructor.Marker({
+        position: path[0],
+        icon: 'https://webapi.amap.com/theme/v1.3/markers/n/start.png',
+        map: map.current,
+      });
+
+      // 创建终点标记
+      const endMarker = new map.current.__proto__.constructor.Marker({
+        position: path[path.length - 1],
+        icon: 'https://webapi.amap.com/theme/v1.3/markers/n/end.png',
+        map: map.current,
+      });
+
+      // 根据路线模式选择颜色
+      let strokeColor = '#0091ff';
+      let strokeStyle = 'solid';
+
+      switch (routeMode) {
+        case 'walking':
+          strokeColor = '#52c41a'; // 绿色
+          break;
+        case 'transit':
+          strokeColor = '#1890ff'; // 蓝色
+          break;
+        case 'driving':
+        default:
+          strokeColor = '#0091ff'; // 深蓝色
+          break;
+      }
+
+      // 创建路线polyline
+      const routeLine = new map.current.__proto__.constructor.Polyline({
+        path: path,
+        isOutline: true,
+        outlineColor: '#ffeeee',
+        borderWeight: 2,
+        strokeWeight: 5,
+        strokeColor: strokeColor,
+        lineJoin: 'round',
+        strokeStyle: strokeStyle,
+      });
+
+      routeLine.setMap(map.current);
+
+      // 调整视野达到最佳显示区域
+      map.current.setFitView([startMarker, endMarker, routeLine]);
+
+      console.log(`${routeMode}路线绘制完成`);
+    } catch (error) {
+      console.error('路线绘制失败:', error);
+    }
+  };
+
+  // 解析路线数据为路径坐标数组
+  const parseRouteToPath = (route) => {
+    const path = [];
+
+    try {
+      // 处理驾车和步行路线的steps结构
+      if (route.steps && Array.isArray(route.steps)) {
+        for (let i = 0; i < route.steps.length; i++) {
+          const step = route.steps[i];
+          if (step.path && Array.isArray(step.path)) {
+            for (let j = 0; j < step.path.length; j++) {
+              path.push(step.path[j]);
+            }
+          }
+        }
+      }
+      // 处理公交路线的segments结构
+      else if (route.segments && Array.isArray(route.segments)) {
+        for (let i = 0; i < route.segments.length; i++) {
+          const segment = route.segments[i];
+          if (segment.transit && segment.transit.path) {
+            for (let j = 0; j < segment.transit.path.length; j++) {
+              path.push(segment.transit.path[j]);
+            }
+          }
+        }
+      }
+      // 如果直接是路径数组
+      else if (Array.isArray(route)) {
+        return route;
+      }
+
+      return path;
+    } catch (error) {
+      console.error('解析路线路径失败:', error);
+      return [];
+    }
+  };
+
+  // 清除所有路线
+  const clearRoute = () => {
+    if (map.current) {
+      const overlays = map.current.getAllOverlays();
+      overlays.forEach((overlay) => {
+        if (
+          overlay.CLASS_NAME === 'AMap.Polyline' ||
+          overlay.CLASS_NAME === 'AMap.Marker'
+        ) {
+          map.current.remove(overlay);
+        }
+      });
+    }
+  };
 
   useEffect(() => {
+    // 防止重复初始化
+    if (hasInitialized.current) {
+      console.log('MapComponent 已初始化，跳过重复初始化');
+      return;
+    }
+
+    isMounted.current = true;
     console.log('MapComponent 组件挂载，开始加载地图');
     console.log('地图容器 ref:', mapContainer.current);
 
@@ -22,8 +150,11 @@ const MapComponent = ({ onMapReady }) => {
       ], // 加载路线规划所需的插件
     })
       .then((AMap) => {
-        console.log('AMap 对象加载成功:', AMap);
-        console.log('地图容器:', mapContainer.current);
+        // 检查组件是否已卸载
+        if (!isMounted.current) {
+          console.log('组件已卸载，取消地图初始化');
+          return;
+        }
 
         // 创建地图实例 - 以杭州西湖为中心
         map.current = new AMap.Map(mapContainer.current, {
@@ -45,6 +176,9 @@ const MapComponent = ({ onMapReady }) => {
           policy: AMap.TransferPolicy.LEAST_TIME,
         });
 
+        // 标记为已初始化
+        hasInitialized.current = true;
+
         // 地图加载完成后通知父组件
         if (onMapReady) {
           console.log('调用 onMapReady 回调');
@@ -54,6 +188,9 @@ const MapComponent = ({ onMapReady }) => {
             driving: driving,
             walking: walking,
             transfer: transfer,
+            drawRoute: drawRoute,
+            clearRoute: clearRoute,
+            parseRouteToPath: parseRouteToPath,
           });
         }
       })
@@ -65,14 +202,16 @@ const MapComponent = ({ onMapReady }) => {
     // 清理函数
     return () => {
       console.log('MapComponent 组件卸载，开始清理地图');
+      isMounted.current = false;
       if (map.current) {
         map.current.destroy();
         console.log('地图实例已销毁');
       }
+      hasInitialized.current = false;
     };
   }, [onMapReady]);
 
   return <div ref={mapContainer} className='w-full h-full'></div>;
-};
+});
 
 export default MapComponent;

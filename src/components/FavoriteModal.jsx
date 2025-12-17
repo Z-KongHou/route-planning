@@ -39,10 +39,14 @@ const FavoriteModal = ({
             取消
           </button>
           <button
-            onClick={onSave}
-            className='px-5 py-2.5 bg-primary text-white border border-primary rounded-md text-sm font-medium cursor-pointer transition-all duration-300 hover:bg-primary/90'
+            type='button'
+            onClick={() => {
+              console.log('点击了确定按钮');
+              onSave();
+            }}
+            className='px-5 py-2.5 bg-blue-600 text-white border border-blue-600 rounded-md text-sm font-medium cursor-pointer transition-all duration-300 hover:bg-blue-700'
           >
-            保存
+            确定
           </button>
         </div>
       </div>
