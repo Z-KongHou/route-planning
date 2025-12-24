@@ -68,6 +68,13 @@ function App() {
                 >
                   收藏
                 </div>
+                {/* 文档 */}
+                <div
+                  onClick={() => navigate('/docs')}
+                  className='text-primary text-base font-medium px-3 py-2 rounded-md cursor-pointer transition-all duration-300 hover:bg-blue-50 hover:text-primary-dark hover:-translate-y-0.5 inline-block'
+                >
+                  文档
+                </div>
                 {/* 关于 */}
                 <div
                   onClick={() => navigate('/about')}

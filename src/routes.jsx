@@ -7,6 +7,7 @@ import TestMapPage from './pages/TestMapPage';
 import SimpleMapTest from './components/SimpleMapTest';
 import LoginPage from './pages/LoginPage';
 import AuthGuard from './components/AuthGuard';
+import DocsPage from './pages/DocsPage';
 
 // 创建浏览器路由器实例
 const router = createBrowserRouter([
@@ -35,6 +36,10 @@ const router = createBrowserRouter([
           {
             path: '/about',
             element: <AboutPage />,
+          },
+          {
+            path: '/docs',
+            element: <DocsPage />,
           },
           {
             path: '/test-map',
