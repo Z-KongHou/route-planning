@@ -12,18 +12,21 @@
 - ✅ **路线收藏**：支持路线的收藏、编辑、删除和管理
 - ✅ **本地存储**：使用 localStorage 持久化保存用户数据
 - ✅ **用户认证**：支持用户登录功能
-- ✅ **多页面视图**：包含首页、收藏页、关于页和登录页
+- ✅ **多页面视图**：包含首页、收藏页、关于页、登录页和文档页
+- ✅ **文档系统**：内置项目文档浏览功能
 
 ### 技术栈
 
-| 模块     | 技术            |
-| -------- | --------------- |
-| 框架     | React 18        |
-| 构建工具 | Vite            |
-| 路由     | React Router    |
-| 地图 API | 高德地图 JS API |
-| UI       | Tailwind        |
-| 持久化   | localStorage    |
+| 模块     | 技术                                    |
+| -------- | --------------------------------------- |
+| 框架     | React 19                                |
+| 构建工具 | Vite                                    |
+| 路由     | React Router                            |
+| 地图 API | 高德地图 JS API                         |
+| UI       | Tailwind                                |
+| 持久化   | localStorage                            |
+| 文档处理 | markdown-it + react-markdown            |
+| 代码高亮 | highlight.js + react-syntax-highlighter |
 
 ## 快速开始
 
@@ -102,14 +105,16 @@ yarn dev
 ### 3. 其他功能
 
 - **关于页面**：点击导航栏的“关于”按钮，查看系统介绍
+- **文档页面**：点击导航栏的“文档”按钮，浏览项目文档
+- **地图测试**：点击导航栏的“地图测试”按钮，进入地图测试页面
 - **退出登录**：点击导航栏的“退出”按钮，退出当前账号
 
 ## 项目结构
 
 ```
 ├── dist/              # 构建输出目录
-├── docs/              # 项目文档
 ├── public/            # 公共静态资源
+│   └── docs/          # 项目文档
 ├── src/               # 源代码目录
 │   ├── assets/        # 项目资源
 │   ├── components/    # 组件目录
@@ -122,21 +127,24 @@ yarn dev
 │   │   └── SimpleMapTest.jsx  # 简单地图测试组件
 │   ├── pages/         # 页面组件
 │   │   ├── AboutPage.jsx      # 关于页面
+│   │   ├── DocsPage.jsx       # 文档页面
 │   │   ├── FavoritesPage.jsx  # 收藏页面
 │   │   ├── HomePage.jsx       # 首页（地图 + 路线规划）
 │   │   ├── LoginPage.jsx      # 登录页面
 │   │   └── TestMapPage.jsx    # 地图测试页面
+│   ├── test/          # 测试文件目录
 │   ├── utils/         # 工具函数
-│   │   └── auth.js            # 认证相关工具
+│   │   ├── auth.js            # 认证相关工具
+│   │   └── route.js           # 路线相关工具
 │   ├── App.css        # 全局样式
 │   ├── App.jsx        # 根组件
 │   ├── index.css      # 基础样式
+│   ├── index.html     # HTML模板
 │   ├── main.jsx       # 入口文件
 │   └── routes.jsx     # 路由配置
 ├── .gitignore         # Git忽略文件
 ├── README.md          # 项目说明文档
 ├── eslint.config.js   # ESLint配置
-├── index.html         # HTML模板
 ├── package.json       # 项目配置
 ├── pnpm-lock.yaml     # 依赖锁定文件
 ├── tailwind.config.js # Tailwind配置
@@ -184,7 +192,7 @@ npm run build
 yarn build
 ```
 
-构建产物将输出到 `dist` 目录。
+构建产物将输出到 `dist` 目录。（这里可以根据实际情况在 `vite.config.js` 中配置输出目录）
 
 ### 预览构建结果
 
