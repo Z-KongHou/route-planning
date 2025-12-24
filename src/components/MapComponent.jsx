@@ -1,32 +1,41 @@
 import React, { useEffect, useRef } from 'react';
 import AMapLoader from '@amap/amap-jsapi-loader';
-
 // 使用 React.memo 防止不必要的重新渲染
 const MapComponent = React.memo(({ onMapReady }) => {
   const mapContainer = useRef(null);
   const map = useRef(null);
+  const AMapRef = useRef(null); // 保存AMap实例
   const isMounted = useRef(false);
   const hasInitialized = useRef(false);
 
   // 参考demo.tsx实现路线绘制功能
   const drawRoute = (route, routeMode = 'driving') => {
-    if (!map.current) {
-      console.error('地图未初始化');
+    if (!map.current || !AMapRef.current) {
+      console.error('地图或AMap实例未初始化');
       return;
     }
 
     try {
       const path = parseRouteToPath(route);
 
+      // 检查path是否为空
+      if (path.length === 0) {
+        console.error('路线数据解析失败，path为空');
+        return;
+      }
+
+      // 使用保存的AMap实例
+      const AMap = AMapRef.current;
+
       // 创建起点标记
-      const startMarker = new map.current.__proto__.constructor.Marker({
+      const startMarker = new AMap.Marker({
         position: path[0],
         icon: 'https://webapi.amap.com/theme/v1.3/markers/n/start.png',
         map: map.current,
       });
 
       // 创建终点标记
-      const endMarker = new map.current.__proto__.constructor.Marker({
+      const endMarker = new AMap.Marker({
         position: path[path.length - 1],
         icon: 'https://webapi.amap.com/theme/v1.3/markers/n/end.png',
         map: map.current,
@@ -50,7 +59,7 @@ const MapComponent = React.memo(({ onMapReady }) => {
       }
 
       // 创建路线polyline
-      const routeLine = new map.current.__proto__.constructor.Polyline({
+      const routeLine = new AMap.Polyline({
         path: path,
         isOutline: true,
         outlineColor: '#ffeeee',
@@ -69,6 +78,7 @@ const MapComponent = React.memo(({ onMapReady }) => {
       console.log(`${routeMode}路线绘制完成`);
     } catch (error) {
       console.error('路线绘制失败:', error);
+      console.error('错误堆栈:', error.stack);
     }
   };
 
@@ -77,8 +87,12 @@ const MapComponent = React.memo(({ onMapReady }) => {
     const path = [];
 
     try {
+      // 首先检查route是否有直接的path属性（驾车路线通常有）
+      if (route.path && Array.isArray(route.path)) {
+        return route.path;
+      }
       // 处理驾车和步行路线的steps结构
-      if (route.steps && Array.isArray(route.steps)) {
+      else if (route.steps && Array.isArray(route.steps)) {
         for (let i = 0; i < route.steps.length; i++) {
           const step = route.steps[i];
           if (step.path && Array.isArray(step.path)) {
@@ -116,9 +130,15 @@ const MapComponent = React.memo(({ onMapReady }) => {
     if (map.current) {
       const overlays = map.current.getAllOverlays();
       overlays.forEach((overlay) => {
+        // 在AMap 2.0中，使用getType()方法获取覆盖物类型
+        const type = overlay.getType
+          ? overlay.getType()
+          : overlay.CLASS_NAME || '';
         if (
-          overlay.CLASS_NAME === 'AMap.Polyline' ||
-          overlay.CLASS_NAME === 'AMap.Marker'
+          type === 'Polyline' ||
+          type === 'Marker' ||
+          type.includes('Polyline') ||
+          type.includes('Marker')
         ) {
           map.current.remove(overlay);
         }
@@ -155,6 +175,9 @@ const MapComponent = React.memo(({ onMapReady }) => {
           console.log('组件已卸载，取消地图初始化');
           return;
         }
+
+        // 保存AMap实例到ref
+        AMapRef.current = AMap;
 
         // 创建地图实例 - 以杭州西湖为中心
         map.current = new AMap.Map(mapContainer.current, {
