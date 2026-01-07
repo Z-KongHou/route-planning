@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import AMapLoader from '@amap/amap-jsapi-loader';
+import { parseRouteToPath } from '../utils/route';
 // 使用 React.memo 防止不必要的重新渲染
 const MapComponent = React.memo(({ onMapReady }) => {
   const mapContainer = useRef(null);
@@ -60,32 +61,74 @@ const MapComponent = React.memo(({ onMapReady }) => {
         });
 
         // 定义路线相关函数
-        const drawRoute = (route) => {
+        const drawRoute = (route, routeMode = 'driving') => {
           if (!map.current || !AMapRef.current) {
             console.error('地图或AMap实例未初始化');
             return;
           }
 
           try {
-            // 简单的路线绘制实现
-            const path = route.path || [];
-            
+            const path = parseRouteToPath(route);
+
+            // 检查path是否为空
             if (path.length === 0) {
               console.error('路线数据解析失败，path为空');
               return;
             }
 
-            // 添加路线到地图
-            const polyline = new AMap.Polyline({
-              path: path,
-              strokeColor: '#36648B',
-              strokeWeight: 6,
-              strokeOpacity: 0.8,
+            // 使用保存的AMap实例
+            const AMap = AMapRef.current;
+
+            // 创建起点标记
+            const startMarker = new AMap.Marker({
+              position: path[0],
+              icon: 'https://webapi.amap.com/theme/v1.3/markers/n/start.png',
+              map: map.current,
             });
-            map.current.add(polyline);
-            map.current.setFitView([polyline], false, [50, 50, 50, 50]);
+
+            // 创建终点标记
+            const endMarker = new AMap.Marker({
+              position: path[path.length - 1],
+              icon: 'https://webapi.amap.com/theme/v1.3/markers/n/end.png',
+              map: map.current,
+            });
+
+            // 根据路线类型选择颜色
+            let strokeColor = '#0091ff';
+            switch (routeMode) {
+              case 'walking':
+                strokeColor = '#52c41a'; // 绿色
+                break;
+              case 'transit':
+                strokeColor = '#1890ff'; // 蓝色
+                break;
+              case 'driving':
+              default:
+                strokeColor = '#0091ff'; // 深蓝色
+                break;
+            }
+
+            // 创建路线polyline
+            const routeLine = new AMap.Polyline({
+              path: path,
+              isOutline: true,
+              outlineColor: '#ffeeee',
+              borderWeight: 2,
+              strokeWeight: 5,
+              strokeColor: strokeColor,
+              lineJoin: 'round',
+              strokeStyle: 'solid',
+            });
+
+            routeLine.setMap(map.current);
+
+            // 调整视野到最佳显示区域
+            map.current.setFitView([startMarker, endMarker, routeLine]);
+
+            console.log(`${routeMode}路线绘制完成`);
           } catch (error) {
-            console.error('绘制路线时出错:', error);
+            console.error('路线绘制失败:', error);
+            console.error('错误堆栈:', error.stack);
           }
         };
 
@@ -93,10 +136,6 @@ const MapComponent = React.memo(({ onMapReady }) => {
           if (map.current) {
             map.current.clearMap();
           }
-        };
-
-        const parseRouteToPath = (route) => {
-          return route.path || [];
         };
 
         // 标记为已初始化
