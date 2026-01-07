@@ -37,7 +37,6 @@ const DocsPage = () => {
   const [markdownContent, setMarkdownContent] = useState(
     DOCS_CONTENT[selectedDoc.id]
   );
-  const [loading, setLoading] = useState(false);
 
   // 切换文档时更新内容
   const handleDocChange = (doc) => {
@@ -73,18 +72,17 @@ const DocsPage = () => {
 
         {/* 文档内容区域 - 滚动 */}
         <main className='md:w-3/4 bg-white rounded-lg shadow-md p-6 overflow-y-auto max-h-full'>
-          <div className='mb-4 flex justify-between items-center'>
+          <div className='mb-4 flex'>
             <h1 className='text-2xl font-bold text-primary'>
               {selectedDoc.name}
             </h1>
-            {loading && <div className='text-sm text-gray-500'>加载中...</div>}
           </div>
 
           <div className='prose max-w-none'>
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
-                code({ node, inline, className, children, ...props }) {
+                code({ inline, className, children, ...props }) {
                   const match = /language-(\w+)/.exec(className || '');
                   return !inline && match ? (
                     <SyntaxHighlighter

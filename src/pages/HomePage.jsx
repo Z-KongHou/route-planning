@@ -25,6 +25,7 @@ const HomePage = () => {
   const [routeName, setRouteName] = useState('');
   const [AMapInstance, setAMapInstance] = useState(null); // AMap对象状态，用于传递给ControlPanel
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedFullRoute, setSelectedFullRoute] = useState(null); // 保存完整路线数据
 
   // 地图加载完成回调 - 使用 useCallback 缓存，防止不必要的重新渲染
   const handleMapReady = React.useCallback((mapServices) => {
@@ -243,6 +244,9 @@ const HomePage = () => {
             setSelectedRouteIndex(0);
             displayRoute(routeResults[0].route, routeResults[0].color, 'drive');
 
+            // 保存完整路线数据
+            setSelectedFullRoute(routeResults[0].route);
+
             // 更新路线结果
             setRouteResult({
               origin: origin,
@@ -367,6 +371,9 @@ const HomePage = () => {
     if (selectedOption) {
       displayRoute(selectedOption.route, selectedOption.color, 'drive');
 
+      // 保存完整路线数据
+      setSelectedFullRoute(selectedOption.route);
+
       // 更新路线结果
       setRouteResult({
         origin: origin,
@@ -397,6 +404,9 @@ const HomePage = () => {
 
     // 绘制路线
     displayRoute(route);
+
+    // 保存完整路线数据
+    setSelectedFullRoute(route);
 
     // 保存路线结果
     setRouteResult({
@@ -433,6 +443,7 @@ const HomePage = () => {
     console.log('saveFavorite 开始执行');
     console.log('routeName:', routeName);
     console.log('routeResult:', routeResult);
+    console.log('selectedFullRoute:', selectedFullRoute);
 
     if (!routeName.trim()) {
       console.log('请输入路线名称');
@@ -448,19 +459,57 @@ const HomePage = () => {
     let originLatLng = null;
     let destinationLatLng = null;
     let polylineData = null;
+    let fullRouteData = null;
+    let processedPolyline = null;
 
-    if (
-      routeResult.polyline &&
-      Array.isArray(routeResult.polyline) &&
-      routeResult.polyline.length > 0
-    ) {
-      originLatLng = routeResult.polyline[0];
-      destinationLatLng = routeResult.polyline[routeResult.polyline.length - 1];
-      polylineData = JSON.stringify(routeResult.polyline);
+    // 处理 polyline 数据，支持多种格式
+    if (routeResult.polyline) {
+      if (Array.isArray(routeResult.polyline)) {
+        processedPolyline = routeResult.polyline;
+      } else if (typeof routeResult.polyline === 'string') {
+        try {
+          processedPolyline = JSON.parse(routeResult.polyline);
+          if (!Array.isArray(processedPolyline)) {
+            processedPolyline = null;
+          }
+        } catch (e) {
+          console.error('解析polyline字符串失败:', e);
+          processedPolyline = null;
+        }
+      }
+    }
+
+    // 如果 selectedFullRoute 中有 path，也可以使用
+    if (!processedPolyline && selectedFullRoute && selectedFullRoute.path) {
+      if (Array.isArray(selectedFullRoute.path)) {
+        processedPolyline = selectedFullRoute.path;
+      } else if (typeof selectedFullRoute.path === 'string') {
+        try {
+          processedPolyline = JSON.parse(selectedFullRoute.path);
+          if (!Array.isArray(processedPolyline)) {
+            processedPolyline = null;
+          }
+        } catch (e) {
+          console.error('解析selectedFullRoute.path字符串失败:', e);
+          processedPolyline = null;
+        }
+      }
+    }
+
+    // 处理 polyline 数据
+    if (processedPolyline && processedPolyline.length > 0) {
+      originLatLng = processedPolyline[0];
+      destinationLatLng = processedPolyline[processedPolyline.length - 1];
+      polylineData = JSON.stringify(processedPolyline);
     } else {
       console.warn('routeResult.polyline 无效，无法获取坐标信息');
       // 使用空数组作为默认值
       polylineData = JSON.stringify([]);
+    }
+
+    // 保存完整路线数据
+    if (selectedFullRoute) {
+      fullRouteData = JSON.stringify(selectedFullRoute);
     }
 
     const newFavorite = {
@@ -474,6 +523,7 @@ const HomePage = () => {
       distance: routeResult.distance,
       duration: routeResult.duration,
       polyline: polylineData,
+      fullRoute: fullRouteData, // 保存完整路线数据
       note: '', // 添加空备注字段，保持数据结构一致
       createdAt: new Date().toISOString(),
     };

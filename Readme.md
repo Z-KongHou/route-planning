@@ -9,6 +9,7 @@
 ### 核心功能
 
 - ✅ **路线规划**：支持驾车、步行、公交三种交通方式
+- ✅ **AI 智能助手**：提供智能路线规划建议和自然语言交互
 - ✅ **路线收藏**：支持路线的收藏、编辑、删除和管理
 - ✅ **本地存储**：使用 localStorage 持久化保存用户数据
 - ✅ **用户认证**：支持用户登录功能
@@ -19,14 +20,15 @@
 
 | 模块     | 技术                                    |
 | -------- | --------------------------------------- |
-| 框架     | React 19                                |
-| 构建工具 | Vite                                    |
-| 路由     | React Router                            |
+| 框架     | React 19.1.1                            |
+| 构建工具 | Vite 7.1.7                              |
+| 路由     | React Router 7.9.6                      |
 | 地图 API | 高德地图 JS API                         |
-| UI       | Tailwind                                |
+| UI       | Tailwind 4.1.17                         |
 | 持久化   | localStorage                            |
 | 文档处理 | markdown-it + react-markdown            |
 | 代码高亮 | highlight.js + react-syntax-highlighter |
+| AI 功能  | AIChatComponent                         |
 
 ## 快速开始
 
@@ -118,13 +120,14 @@ yarn dev
 ├── src/               # 源代码目录
 │   ├── assets/        # 项目资源
 │   ├── components/    # 组件目录
-│   │   ├── AuthGuard.jsx     # 权限守卫组件
-│   │   ├── ControlPanel.jsx   # 控制面板组件
-│   │   ├── FavoriteModal.jsx  # 收藏模态框组件
-│   │   ├── MapComponent.jsx   # 地图组件
-│   │   ├── RouteOptions.jsx   # 路线选项组件
-│   │   ├── RouteResult.jsx    # 路线结果组件
-│   │   └── SimpleMapTest.jsx  # 简单地图测试组件
+│   │   ├── AIChatComponent.jsx   # AI聊天组件
+│   │   ├── AuthGuard.jsx          # 权限守卫组件
+│   │   ├── ControlPanel.jsx       # 控制面板组件
+│   │   ├── FavoriteModal.jsx      # 收藏模态框组件
+│   │   ├── MapComponent.jsx       # 地图组件
+│   │   ├── RouteOptions.jsx       # 路线选项组件
+│   │   ├── RouteResult.jsx        # 路线结果组件
+│   │   └── SimpleMapTest.jsx      # 简单地图测试组件
 │   ├── pages/         # 页面组件
 │   │   ├── AboutPage.jsx      # 关于页面
 │   │   ├── DocsPage.jsx       # 文档页面

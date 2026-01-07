@@ -8,148 +8,8 @@ const MapComponent = React.memo(({ onMapReady }) => {
   const isMounted = useRef(false);
   const hasInitialized = useRef(false);
 
-  // 参考demo.tsx实现路线绘制功能
-  const drawRoute = (route, routeMode = 'driving') => {
-    if (!map.current || !AMapRef.current) {
-      console.error('地图或AMap实例未初始化');
-      return;
-    }
-
-    try {
-      const path = parseRouteToPath(route);
-
-      // 检查path是否为空
-      if (path.length === 0) {
-        console.error('路线数据解析失败，path为空');
-        return;
-      }
-
-      // 使用保存的AMap实例
-      const AMap = AMapRef.current;
-
-      // 创建起点标记
-      const startMarker = new AMap.Marker({
-        position: path[0],
-        icon: 'https://webapi.amap.com/theme/v1.3/markers/n/start.png',
-        map: map.current,
-      });
-
-      // 创建终点标记
-      const endMarker = new AMap.Marker({
-        position: path[path.length - 1],
-        icon: 'https://webapi.amap.com/theme/v1.3/markers/n/end.png',
-        map: map.current,
-      });
-
-      // 根据路线模式选择颜色
-      let strokeColor = '#0091ff';
-      let strokeStyle = 'solid';
-
-      switch (routeMode) {
-        case 'walking':
-          strokeColor = '#52c41a'; // 绿色
-          break;
-        case 'transit':
-          strokeColor = '#1890ff'; // 蓝色
-          break;
-        case 'driving':
-        default:
-          strokeColor = '#0091ff'; // 深蓝色
-          break;
-      }
-
-      // 创建路线polyline
-      const routeLine = new AMap.Polyline({
-        path: path,
-        isOutline: true,
-        outlineColor: '#ffeeee',
-        borderWeight: 2,
-        strokeWeight: 5,
-        strokeColor: strokeColor,
-        lineJoin: 'round',
-        strokeStyle: strokeStyle,
-      });
-
-      routeLine.setMap(map.current);
-
-      // 调整视野达到最佳显示区域
-      map.current.setFitView([startMarker, endMarker, routeLine]);
-
-      console.log(`${routeMode}路线绘制完成`);
-    } catch (error) {
-      console.error('路线绘制失败:', error);
-      console.error('错误堆栈:', error.stack);
-    }
-  };
-
-  // 解析路线数据为路径坐标数组
-  const parseRouteToPath = (route) => {
-    const path = [];
-
-    try {
-      // 首先检查route是否有直接的path属性（驾车路线通常有）
-      if (route.path && Array.isArray(route.path)) {
-        return route.path;
-      }
-      // 处理驾车和步行路线的steps结构
-      else if (route.steps && Array.isArray(route.steps)) {
-        for (let i = 0; i < route.steps.length; i++) {
-          const step = route.steps[i];
-          if (step.path && Array.isArray(step.path)) {
-            for (let j = 0; j < step.path.length; j++) {
-              path.push(step.path[j]);
-            }
-          }
-        }
-      }
-      // 处理公交路线的segments结构
-      else if (route.segments && Array.isArray(route.segments)) {
-        for (let i = 0; i < route.segments.length; i++) {
-          const segment = route.segments[i];
-          if (segment.transit && segment.transit.path) {
-            for (let j = 0; j < segment.transit.path.length; j++) {
-              path.push(segment.transit.path[j]);
-            }
-          }
-        }
-      }
-      // 如果直接是路径数组
-      else if (Array.isArray(route)) {
-        return route;
-      }
-
-      return path;
-    } catch (error) {
-      console.error('解析路线路径失败:', error);
-      return [];
-    }
-  };
-
-  // 清除所有路线
-  const clearRoute = () => {
-    if (map.current) {
-      const overlays = map.current.getAllOverlays();
-      overlays.forEach((overlay) => {
-        // 在AMap 2.0中，使用getType()方法获取覆盖物类型
-        const type = overlay.getType
-          ? overlay.getType()
-          : overlay.CLASS_NAME || '';
-        if (
-          type === 'Polyline' ||
-          type === 'Marker' ||
-          type.includes('Polyline') ||
-          type.includes('Marker')
-        ) {
-          map.current.remove(overlay);
-        }
-      });
-    }
-  };
-
   useEffect(() => {
-    // 防止重复初始化
-    if (hasInitialized.current) {
-      console.log('MapComponent 已初始化，跳过重复初始化');
+    if (hasInitialized.current || !mapContainer.current) {
       return;
     }
 
@@ -198,6 +58,46 @@ const MapComponent = React.memo(({ onMapReady }) => {
           city: '北京',
           policy: AMap.TransferPolicy.LEAST_TIME,
         });
+
+        // 定义路线相关函数
+        const drawRoute = (route) => {
+          if (!map.current || !AMapRef.current) {
+            console.error('地图或AMap实例未初始化');
+            return;
+          }
+
+          try {
+            // 简单的路线绘制实现
+            const path = route.path || [];
+            
+            if (path.length === 0) {
+              console.error('路线数据解析失败，path为空');
+              return;
+            }
+
+            // 添加路线到地图
+            const polyline = new AMap.Polyline({
+              path: path,
+              strokeColor: '#36648B',
+              strokeWeight: 6,
+              strokeOpacity: 0.8,
+            });
+            map.current.add(polyline);
+            map.current.setFitView([polyline], false, [50, 50, 50, 50]);
+          } catch (error) {
+            console.error('绘制路线时出错:', error);
+          }
+        };
+
+        const clearRoute = () => {
+          if (map.current) {
+            map.current.clearMap();
+          }
+        };
+
+        const parseRouteToPath = (route) => {
+          return route.path || [];
+        };
 
         // 标记为已初始化
         hasInitialized.current = true;
