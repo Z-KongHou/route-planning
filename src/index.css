@@ -29,6 +29,17 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  overflow: hidden;
+}
+
+/* 隐藏滚动条 */
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* 兼容Firefox */
+* {
+  scrollbar-width: none;
 }
 
 /* 标题样式 */

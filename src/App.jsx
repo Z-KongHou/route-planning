@@ -114,7 +114,7 @@ function App() {
       </header>
 
       {/* 路由出口 - 显示当前路由对应的组件，添加顶部边距避免被导航栏遮挡 */}
-      <main className='flex-1 pt-12 w-full pb-12'>
+      <main className='flex-1 pt-12 w-full overflow-hidden'>
         <Outlet />
       </main>
     </div>

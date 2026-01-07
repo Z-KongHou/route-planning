@@ -183,7 +183,7 @@ const MapComponent = React.memo(({ onMapReady }) => {
         map.current = new AMap.Map(mapContainer.current, {
           viewMode: '2D',
           zoom: 14,
-          center: [120.143811, 30.258455], // 杭州西湖坐标
+          center: [120.3386, 30.3164], // 杭州西湖坐标
           resizeEnable: true,
         });
 

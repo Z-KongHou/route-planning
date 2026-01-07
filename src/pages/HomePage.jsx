@@ -4,6 +4,7 @@ import ControlPanel from '../components/ControlPanel';
 import RouteResult from '../components/RouteResult';
 import RouteOptions from '../components/RouteOptions';
 import FavoriteModal from '../components/FavoriteModal';
+import AIChatComponent from '../components/AIChatComponent';
 
 const HomePage = () => {
   // 地图相关引用
@@ -495,7 +496,7 @@ const HomePage = () => {
   };
 
   return (
-    <div className='relative w-full h-[calc(100vh-64px)] bg-gray-100 overflow-hidden'>
+    <div className='relative w-full h-[calc(100vh-48px)] bg-gray-100 overflow-hidden'>
       {/* 地图容器 */}
       <MapComponent onMapReady={handleMapReady} />
 
@@ -540,6 +541,9 @@ const HomePage = () => {
         setRouteName={setRouteName}
         onSave={saveFavorite}
       />
+
+      {/* AI谈话组件 */}
+      <AIChatComponent />
     </div>
   );
 };
